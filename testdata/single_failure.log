@@ -1,0 +1,6 @@
+2026-09-24T11:00:00.0000000Z ##[group]Run ./scripts/publish.sh
+2026-09-24T11:00:01.0000000Z Publishing release v0.1.0-rc.1 to registry
+2026-09-24T11:00:02.0000000Z panic: configuration is invalid: missing publish target
+2026-09-24T11:00:02.1000000Z goroutine 1 [running]:
+2026-09-24T11:00:03.0000000Z main.main() ./scripts/publish.go:17 +0x2c
+2026-09-24T11:00:03.1000000Z ##[error]Process completed with exit code 1.
