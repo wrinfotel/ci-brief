@@ -24,7 +24,8 @@ import (
 	"github.com/wrinfotel/ci-brief/internal/signature"
 )
 
-const version = "0.1.0"
+// version is overridden at release builds via -ldflags "-X main.version=…".
+var version = "0.1.0"
 
 const usage = `ci-brief — turn a failed GitHub Actions run into a short grouped report
 

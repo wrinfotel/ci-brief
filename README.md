@@ -1,5 +1,7 @@
 # ci-brief
 
+[![CI](https://github.com/wrinfotel/ci-brief/actions/workflows/ci.yml/badge.svg)](https://github.com/wrinfotel/ci-brief/actions/workflows/ci.yml)
+
 > Turn a failed GitHub Actions run into a short, grouped error report — before you open a single megabyte of log.
 
 ```text
