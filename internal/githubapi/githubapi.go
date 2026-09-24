@@ -82,6 +82,7 @@ type Run struct {
 	Name         string    `json:"name"`
 	DisplayTitle string    `json:"display_title"`
 	RunNumber    int64     `json:"run_number"`
+	Status       string    `json:"status"`
 	Conclusion   string    `json:"conclusion"`
 	HTMLURL      string    `json:"html_url"`
 	CreatedAt    time.Time `json:"created_at"`
@@ -245,7 +246,12 @@ func (c *Client) GetRun(ctx context.Context, owner, repo string, runID int64) (*
 // LatestFailedRun returns the most recent completed run with conclusion
 // "failure".
 func (c *Client) LatestFailedRun(ctx context.Context, owner, repo string) (*Run, error) {
-	q := url.Values{"per_page": {"1"}, "status": {"completed"}, "conclusion": {"failure"}}
+	// GitHub's workflow-runs endpoint treats `status` as either a run
+	// status or a conclusion. Passing both `status=completed` and
+	// `conclusion=failure` does not narrow the result and can return a
+	// skipped run. Query by `status=failure`, then verify the response
+	// client-side as a safeguard against API inconsistencies.
+	q := url.Values{"per_page": {"1"}, "status": {"failure"}}
 	resp, err := c.do(ctx, http.MethodGet, fmt.Sprintf("repos/%s/%s/actions/runs", owner, repo), q)
 	if err != nil {
 		return nil, err
@@ -262,6 +268,9 @@ func (c *Client) LatestFailedRun(ctx context.Context, owner, repo string) (*Run,
 		return nil, fmt.Errorf("no failed runs found for %s/%s", owner, repo)
 	}
 	run := envelope.Runs[0]
+	if run.Status != "completed" || run.Conclusion != "failure" {
+		return nil, fmt.Errorf("no failed runs found for %s/%s", owner, repo)
+	}
 	return &run, nil
 }
 

@@ -36,6 +36,38 @@ func TestGetRun(t *testing.T) {
 	}
 }
 
+func TestLatestFailedRunRejectsNonFailureConclusion(t *testing.T) {
+	c := newTestClient(t, "", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.URL.Query().Get("status"); got != "failure" {
+			t.Errorf("status query = %q, want failure", got)
+		}
+		if got := r.URL.Query().Get("conclusion"); got != "" {
+			t.Errorf("conclusion query = %q, want empty (GitHub treats conclusion as status)", got)
+		}
+		fmt.Fprint(w, `{"total_count":1,"workflow_runs":[{"id":42,"run_number":7,"status":"completed","conclusion":"skipped"}]}`)
+	}))
+	_, err := c.LatestFailedRun(context.Background(), "o", "r")
+	if err == nil {
+		t.Fatal("LatestFailedRun accepted a skipped run")
+	}
+	if !strings.Contains(err.Error(), "no failed runs found") {
+		t.Fatalf("error = %v, want no failed runs found", err)
+	}
+}
+
+func TestLatestFailedRunAcceptsFailure(t *testing.T) {
+	c := newTestClient(t, "", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"total_count":1,"workflow_runs":[{"id":42,"run_number":7,"status":"completed","conclusion":"failure"}]}`)
+	}))
+	run, err := c.LatestFailedRun(context.Background(), "o", "r")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if run.ID != 42 || run.Conclusion != "failure" {
+		t.Fatalf("run = %+v", run)
+	}
+}
+
 func TestJobLogsFollows302(t *testing.T) {
 	sawAuthOnBlob := false
 	mux := http.NewServeMux()
