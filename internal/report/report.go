@@ -57,6 +57,8 @@ type jsonReport struct {
 	} `json:"summary"`
 	Primary *jsonGroup  `json:"primary,omitempty"`
 	Groups  []jsonGroup `json:"groups"`
+	// FirstError is set in degraded mode, when no group reached min-group.
+	FirstError string `json:"first_error,omitempty"`
 }
 
 // JSON renders the machine-readable report (jq-friendly).
@@ -70,6 +72,7 @@ func JSON(d *Data) ([]byte, error) {
 	out.Summary.ErrorLines = d.Res.ErrorLines
 	out.Summary.Groups = len(d.Res.Groups)
 	out.Summary.Degraded = d.Res.Degraded
+	out.FirstError = d.Res.FirstError
 	out.Groups = make([]jsonGroup, 0, len(d.Res.Groups))
 	for _, g := range d.Res.Groups {
 		out.Groups = append(out.Groups, toJSONGroup(g))

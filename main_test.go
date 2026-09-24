@@ -122,10 +122,11 @@ func TestRunTokenNeverLeaksIntoReport(t *testing.T) {
 	dir := t.TempDir()
 	logPath := filepath.Join(dir, "leak.log")
 	token := "ghp_0123456789abcdefghijklmnopqrstuv"
-	content := "2026-09-24T12:00:00.0000000Z ##[error]error: push rejected to https://" + token + "@github.com/o/r.git\n"
-	if err := os.WriteFile(logPath, []byte(content+content), 0o600); err != nil {
+	content := "2026-09-24T12:00:00.0000000Z ##[error]error: push rejected to https://" + token + "@github.com/o/r.git (pkg/auth.ts:84)\n"
+	if err := os.WriteFile(logPath, []byte(content), 0o600); err != nil {
 		t.Fatal(err)
 	}
+	// Degraded mode renders the first error line; JSON carries first_line.
 	code, out, _ := runForTest(t, logPath)
 	if code != 0 {
 		t.Fatalf("exit = %d", code)
@@ -135,6 +136,14 @@ func TestRunTokenNeverLeaksIntoReport(t *testing.T) {
 	}
 	if !strings.Contains(out, "gh***") {
 		t.Errorf("expected masked token in report:\n%s", out)
+	}
+
+	code, out, _ = runForTest(t, "--format", "json", logPath)
+	if code != 0 {
+		t.Fatalf("exit = %d", code)
+	}
+	if strings.Contains(out, token) || !strings.Contains(out, "gh***") {
+		t.Errorf("token leak in json report:\n%s", out)
 	}
 }
 
