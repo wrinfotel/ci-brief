@@ -61,8 +61,6 @@ Exit codes: `0` — report produced (or nothing to analyze); `2` — utility err
 
 ## Authentication
 
-<!-- TODO(v0.1): record a 10-second demo gif of the grafana case (11 failed jobs → 5 lines) and put it above the first heading. -->
-
 GitHub requires a token to **download job logs even for public repos** (listing runs and jobs works anonymously, but only 60 requests/hour). Create a [fine-grained PAT](https://github.com/settings/personal-access-tokens) with read access to Actions:
 
 ```bash
