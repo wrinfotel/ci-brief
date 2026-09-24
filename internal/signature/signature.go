@@ -68,7 +68,6 @@ var (
 	errorTSRe  = regexp.MustCompile(`error TS\d+`)
 
 	fileLineRe = regexp.MustCompile(`(?:[A-Za-z]:)?[^\s"'` + "`" + `]*[/\\][^\s"'` + "`" + `]*\.[A-Za-z0-9]+:\d+`)
-	bareFileRe = regexp.MustCompile(`(?:[A-Za-z]:)?[^\s"'` + "`" + `]*[/\\][^\s"'` + "`" + `]*\.[A-Za-z0-9]+`)
 )
 
 func isWordByte(b byte) bool {
@@ -278,10 +277,9 @@ func Build(lines []Line, minGroup, top int) *Result {
 	return res
 }
 
-// extractFile pulls a file:line (or bare path) out of a cleaned line.
+// extractFile pulls a file:line reference (e.g. pkg/auth.ts:84) out of a
+// cleaned line; "" when the line carries none — a bare path without a line
+// number is not shown as "first:".
 func extractFile(cleaned string) string {
-	if m := fileLineRe.FindString(cleaned); m != "" {
-		return m
-	}
-	return bareFileRe.FindString(cleaned)
+	return fileLineRe.FindString(cleaned)
 }
